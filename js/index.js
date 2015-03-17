@@ -39,7 +39,7 @@ function init() {
   // add center around which player will rotate
   var geometry = new THREE.SphereGeometry(.2, 5, 5);
   var material = new THREE.MeshBasicMaterial({ color: 0xaff00 });
-  var playerCenter = new THREE.Mesh( geometry, material );
+  playerCenter = new THREE.Mesh( geometry, material );
 
   playerCenter.position.set( 0, 20, 0 );
 
@@ -68,7 +68,7 @@ function init() {
     side: THREE.DoubleSide
   });
 
-  playerPos = new THREE.Mesh( geometry, material );
+  var playerPos = new THREE.Mesh( geometry, material );
 
   // rotate to be parralel with ground
   playerPos.rotation.x = -Math.PI / 2;
@@ -80,10 +80,10 @@ function init() {
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth /
       window.innerHeight, 1, 1000 );
 
-  camera.position.set( 0, 0, 30 );
+  camera.position.set( 0, 0, 35 );
 
   // attach camera to player object
-  player.add( camera );
+  playerCenter.add( camera );
 
   // add controls
   controls = new THREE.DeviceOrientationControls( playerCenter );
@@ -124,7 +124,9 @@ function makeBullets (numToMake) {
     bullet.position.z = START_POSITION_Z;
     bullet.position.y = 25;
 
-    bullet.raycaster = new THREE.Raycaster(bullet.position, direction);
+    // Raycaster( origin, direction, near, far )
+    bullet.raycaster = new THREE.Raycaster( bullet.position, direction, 0,
+        350 );
 
     scene.add( bullet );
     bulletList[i] = bullet;
@@ -151,14 +153,14 @@ function startBullets () {
     };
 
     target = {
-      x: bullet.position.x + ((Math.random() * 10) - 5),
-      y: bullet.position.y,
+      x: bullet.position.x + (Math.random() * 10 - 5),
+      y: bullet.position.y + (Math.random() * 10 - 5),
       z: 50
     };
 
     doTween(position, target, bullet, TWEEN.Easing.Circular.Out, 2000);
 
-  }, 500);
+  }, 1000);
 }
 
 function createIntersectionPoint (p) {
@@ -170,8 +172,6 @@ function createIntersectionPoint (p) {
   var green = Math.floor(p.distance / 2);
 
   var color = parseInt("0xff" + green.toString(16) + "00", 16);
-  // var color = 0xffff00;
-  console.log(color);
 
   var material = new THREE.MeshBasicMaterial({
     color: color,
@@ -186,13 +186,10 @@ function createIntersectionPoint (p) {
   collisionPoints.push(point);
 
   scene.add( point );
-  console.log(point);
 }
 
 function checkForCollisions () {
   var intersection;
-
-  console.log(collisionPoints.length);
 
   // remove all collision points
   for (var i = 0; i < collisionPoints.length; i++) {
@@ -208,11 +205,17 @@ function checkForCollisions () {
 
     if (intersection.length) {
 
-      if (intersection[0].distance > 10) {
+      if (intersection[0].distance > 5) {
         createIntersectionPoint(intersection[0]);
 
       } else {
-        // player was hit
+        // player was hit - reduce green or increase transparency
+        if (player.material.color.g < 0.1) {
+          playerCenter.remove( player );
+
+        } else {
+          player.material.color.g = player.material.color.g / 2;
+        }
       }
     }
   }
