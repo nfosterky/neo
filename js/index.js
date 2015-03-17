@@ -160,11 +160,13 @@ function startBullets () {
 
     doTween(position, target, bullet, TWEEN.Easing.Circular.Out, 2000);
 
-  }, 1000);
+  }, 1500);
 }
 
 function createIntersectionPoint (p) {
-  var geometry = new THREE.SphereGeometry(0.25, 5, 5);
+  // what is the min and max size for a collision point?
+  // var collisionSize = (START_POSITION_Z - p.distance) / 100
+  var geometry = new THREE.SphereGeometry(1, 5, 5);
 
   // determine how much green should be in color
   // the closer the bullet is to person the less green
@@ -214,7 +216,7 @@ function checkForCollisions () {
           playerCenter.remove( player );
 
         } else {
-          player.material.color.g = player.material.color.g / 2;
+          player.material.color.g = player.material.color.g / 1.2;
         }
       }
     }
