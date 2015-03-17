@@ -1,11 +1,9 @@
-// create scene
-// add plane
-// add bullets to dodge
-var camera, scene, renderer, controls, ground;
+var camera, scene, renderer, controls, ground, player;
 
-var player, cameracontrols;
-
-var raycaster;
+var BULLET_RADIUS = 1;
+var START_POSITION_Z = -500;
+var bulletList = [];
+var collisionPoints = [];
 
 function init() {
   var plane, light, groundTexture, groundMaterial;
@@ -17,7 +15,6 @@ function init() {
 
   // add lighting
   scene.add( new THREE.AmbientLight( 0x666666 ) );
-
   light = new THREE.PointLight( 0xaaddaa, .5 );
   light.position.set( 50, 1200, -500 );
   scene.add( light );
@@ -39,7 +36,16 @@ function init() {
   ground.receiveShadow = true;
   scene.add( ground );
 
-  // add playerBox
+  // add center around which player will rotate
+  var geometry = new THREE.SphereGeometry(.2, 5, 5);
+  var material = new THREE.MeshBasicMaterial({ color: 0xaff00 });
+  var playerCenter = new THREE.Mesh( geometry, material );
+
+  playerCenter.position.set( 0, 20, 0 );
+
+  scene.add( playerCenter );
+
+  // add player obj
   // PlaneGeometry(width, height, widthSegments, heightSegments)
   var geometry = new THREE.PlaneGeometry( 10, 20, 32 );
   var material = new THREE.MeshBasicMaterial({
@@ -50,11 +56,12 @@ function init() {
   });
 
   player = new THREE.Mesh( geometry, material );
-  player.position.set(0, 20, 0);
-  scene.add( player );
+  player.position.set( 0, 0, 5 );
+  playerCenter.add( player );
 
-  var geometry = new THREE.PlaneGeometry( 10, 10, 32 );
-  var material = new THREE.MeshBasicMaterial({
+  // add player base
+  geometry = new THREE.PlaneGeometry( 10, 10, 32 );
+  material = new THREE.MeshBasicMaterial({
     color: 0x9999ff,
     transparent: true,
     opacity: 0.5,
@@ -63,11 +70,11 @@ function init() {
 
   playerPos = new THREE.Mesh( geometry, material );
 
+  // rotate to be parralel with ground
   playerPos.rotation.x = -Math.PI / 2;
   playerPos.position.set(0, 10, 0);
 
   scene.add( playerPos );
-
 
   // add camera
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth /
@@ -75,9 +82,11 @@ function init() {
 
   camera.position.set( 0, 0, 30 );
 
+  // attach camera to player object
   player.add( camera );
 
-  controls = new THREE.DeviceOrientationControls( player );
+  // add controls
+  controls = new THREE.DeviceOrientationControls( playerCenter );
 
   // add renderer
   renderer = new THREE.WebGLRenderer();
@@ -89,14 +98,9 @@ function init() {
   startBullets();
   animate();
 }
-var BULLET_RADIUS = 1;
-var START_POSITION_Z = -500;
-var bulletList = [];
 
 function makeBullets (numToMake) {
   var geometry = new THREE.SphereGeometry(BULLET_RADIUS, 5, 5);
-
-  var bullet = {};
 
   var material = new THREE.MeshBasicMaterial({
     color: 0xaff00,
@@ -104,14 +108,15 @@ function makeBullets (numToMake) {
     wireframeLinewidth: 2
   });
 
+  var bullet = {};
+  var matrix = new THREE.Matrix4();
+  var direction = new THREE.Vector3( 0, 0, 1 );
+
   bullet = new THREE.Mesh( geometry, material );
   bullet.position.z = START_POSITION_Z;
   bullet.position.y = 25;
 
-  var matrix = new THREE.Matrix4();
   matrix.extractRotation( bullet.matrix );
-
-  var direction = new THREE.Vector3( 0, 0, 1 );
   direction = matrix.multiplyVector3( direction );
 
   for (var i = 0; i < numToMake; i++) {
@@ -146,21 +151,27 @@ function startBullets () {
     };
 
     target = {
-      x: bullet.position.x,
+      x: bullet.position.x + ((Math.random() * 10) - 5),
       y: bullet.position.y,
       z: 50
     };
 
-    doTween(position, target, bullet, TWEEN.Easing.Circular.Out, 1000);
+    doTween(position, target, bullet, TWEEN.Easing.Circular.Out, 2000);
 
   }, 500);
 }
 
-var points = [];
-
-function createIntersectionPoint (p, color) {
-  console.log(point);
+function createIntersectionPoint (p) {
   var geometry = new THREE.SphereGeometry(0.25, 5, 5);
+
+  // determine how much green should be in color
+  // the closer the bullet is to person the less green
+  // max p.distance = 500
+  var green = Math.floor(p.distance / 2);
+
+  var color = parseInt("0xff" + green.toString(16) + "00", 16);
+  // var color = 0xffff00;
+  console.log(color);
 
   var material = new THREE.MeshBasicMaterial({
     color: color,
@@ -170,14 +181,42 @@ function createIntersectionPoint (p, color) {
 
   var point = new THREE.Mesh( geometry, material );
 
-  point.position.set(p.x, p.y, p.z);
+  point.position.set(p.point.x, p.point.y, p.point.z);
 
-  points.push(point);
+  collisionPoints.push(point);
 
   scene.add( point );
+  console.log(point);
 }
-var COLOR_RED = 0xff3300;
-var COLOR_ORANGE = 0xff8888;
+
+function checkForCollisions () {
+  var intersection;
+
+  console.log(collisionPoints.length);
+
+  // remove all collision points
+  for (var i = 0; i < collisionPoints.length; i++) {
+    scene.remove(collisionPoints[i]);
+  }
+
+  // empty points array -- might be more efficient way
+  collisionPoints = [];
+
+  for (var i = 0; i < bulletList.length; i++) {
+    // check for collision
+    intersection = bulletList[i].raycaster.intersectObject(player);
+
+    if (intersection.length) {
+
+      if (intersection[0].distance > 10) {
+        createIntersectionPoint(intersection[0]);
+
+      } else {
+        // player was hit
+      }
+    }
+  }
+}
 
 function doTween (position, target, obj, easing, time) {
   var startPosition = {
@@ -195,29 +234,7 @@ function doTween (position, target, obj, easing, time) {
         }
       });
 
-  var intersection;
-
   tween.onUpdate(function() {
-    // remove all collision points
-    for (var i = 0; i < points.length; i++) {
-      scene.remove(points[i]);
-    }
-    // empty points array -- might need to check for more efficient way
-    points = [];
-
-    // check for collision
-    intersection = obj.raycaster.intersectObject(player);
-
-    if (intersection.length) {
-
-      if (intersection[0].distance > 10) {
-        createIntersectionPoint(intersection[0].point, COLOR_RED);
-
-      } else {
-        createIntersectionPoint(intersection[0].point, COLOR_ORANGE);
-      }
-    }
-
     obj.position.x = position.x;
     obj.position.y = position.y;
     obj.position.z = position.z;
@@ -229,6 +246,8 @@ function doTween (position, target, obj, easing, time) {
 }
 
 function animate() {
+
+  checkForCollisions();
 
   requestAnimationFrame( animate );
 
