@@ -164,9 +164,16 @@ function startBullets () {
 }
 
 function createIntersectionPoint (p) {
-  // what is the min and max size for a collision point?
-  // var collisionSize = (START_POSITION_Z - p.distance) / 100
-  var geometry = new THREE.SphereGeometry(1, 5, 5);
+  var maxSize = 2,
+    maxDis = Math.abs(START_POSITION_Z);
+
+  // normalize distance to be between 0 and 1
+  var collisionSize = (maxDis - p.distance) / maxDis;
+
+  // collision point size 0 -> 2
+  collisionSize *= maxSize;
+
+  var geometry = new THREE.SphereGeometry(collisionSize, 5, 5);
 
   // determine how much green should be in color
   // the closer the bullet is to person the less green
@@ -207,10 +214,11 @@ function checkForCollisions () {
 
     if (intersection.length) {
 
-      if (intersection[0].distance > 5) {
+      if (intersection[0].distance > 2) {
         createIntersectionPoint(intersection[0]);
 
       } else {
+
         // player was hit - reduce green or increase transparency
         if (player.material.color.g < 0.1) {
           playerCenter.remove( player );
