@@ -19,22 +19,14 @@ function init() {
   light.position.set( 50, 1200, -500 );
   scene.add( light );
 
-  // add ground
-  groundTexture = THREE.ImageUtils.loadTexture( "textures/Moon.png" );
-  groundTexture.anisotropy = 16;
+  // ground
 
-  groundMaterial = new THREE.MeshPhongMaterial({
-    color: 0xffffff,
-    specular: 0x111111,
-    map: groundTexture
-  });
+	var helper = new THREE.GridHelper( 500, 10 );
+	helper.color1.setHex( 0x444444 );
+	helper.color2.setHex( 0x444444 );
+	helper.position.y = 0.1
+	scene.add( helper );
 
-	ground = new THREE.Mesh( new THREE.PlaneBufferGeometry( 1000, 1000 ),
-      groundMaterial );
-
-	ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add( ground );
 
   // add center around which player will rotate
   var geometry = new THREE.SphereGeometry(.2, 5, 5);
