@@ -1,4 +1,4 @@
-var camera, scene, renderer, controls, ground, player;
+var camera, scene, renderer, controls, ground, player, playerCenter;
 
 var BULLET_SIZE = 1;
 var START_POSITION_Z = -500;
@@ -20,8 +20,22 @@ function init() {
   light.position.set( 50, 1200, -500 );
   scene.add( light );
 
-  // ground
+  // sky - background
+  var texture	= THREE.ImageUtils.loadTexture("textures/tycho_cyl_glow.png");
 
+  var geoUniverse = new THREE.SphereGeometry(300, 50, 50);
+
+  var material = new THREE.MeshLambertMaterial({
+    color : 0xFFFFFF,
+    map : texture,
+    side: THREE.BackSide
+  });
+
+  var universe = new THREE.Mesh( geoUniverse, material );
+
+  scene.add( universe );
+
+  // ground
 	var ground = new THREE.GridHelper( 500, 10 );
 	ground.color1.setHex( 0x444444 );
 	ground.color2.setHex( 0x444444 );
@@ -146,8 +160,8 @@ function startBullets () {
     };
 
     target = {
-      x: bullet.position.x + (Math.random() * 10 - 5),
-      y: bullet.position.y + (Math.random() * 10 - 5),
+      x: playerCenter.position.x + (Math.random() * 10 - 5),
+      y: playerCenter.position.y + (Math.random() * 10 - 5),
       z: 50
     };
 
