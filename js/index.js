@@ -1,13 +1,13 @@
 var camera, scene, renderer, controls, ground, player;
 
-var BULLET_RADIUS = 1;
+var BULLET_SIZE = 1;
 var START_POSITION_Z = -500;
 var DETECT_BULLET_DISTANCE = 450;
 var bulletList = [];
 var collisionPoints = [];
 
 function init() {
-  var plane, light, groundTexture, groundMaterial;
+  var plane, light, ground;
 
 	scene = new THREE.Scene();
 
@@ -22,11 +22,11 @@ function init() {
 
   // ground
 
-	var helper = new THREE.GridHelper( 500, 10 );
-	helper.color1.setHex( 0x444444 );
-	helper.color2.setHex( 0x444444 );
-	helper.position.y = 0.1
-	scene.add( helper );
+	var ground = new THREE.GridHelper( 500, 10 );
+	ground.color1.setHex( 0x444444 );
+	ground.color2.setHex( 0x444444 );
+	ground.position.y = 0.1
+	scene.add( ground );
 
 
   // add center around which player will rotate
@@ -36,7 +36,7 @@ function init() {
 
   playerCenter.position.set( 0, 20, 0 );
 
-  scene.add( playerCenter );
+  ground.add( playerCenter );
 
   // add player obj
   // PlaneGeometry(width, height, widthSegments, heightSegments)
@@ -67,7 +67,7 @@ function init() {
   playerPos.rotation.x = -Math.PI / 2;
   playerPos.position.set(0, 10, 0);
 
-  scene.add( playerPos );
+  ground.add( playerPos );
 
   // add camera
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth /
@@ -79,7 +79,7 @@ function init() {
   playerCenter.add( camera );
 
   // add controls
-  controls = new THREE.DeviceOrientationControls( playerCenter );
+  controls = new THREE.DeviceOrientationControls( ground );
 
   // add renderer
   renderer = new THREE.WebGLRenderer();
@@ -93,7 +93,7 @@ function init() {
 }
 
 function makeBullets (numToMake) {
-  var geometry = new THREE.SphereGeometry(BULLET_RADIUS, 5, 5);
+  var geometry = new THREE.SphereGeometry(BULLET_SIZE, 5, 5);
 
   var material = new THREE.MeshBasicMaterial({
     color: 0xaff00,
@@ -157,14 +157,13 @@ function startBullets () {
 }
 
 function createIntersectionPoint (p) {
-  var maxSize = 2,
-    maxDis = Math.abs(START_POSITION_Z);
+  var maxDis = Math.abs(START_POSITION_Z);
 
   // normalize distance to be between 0 and 1
   var collisionSize = (maxDis - p.distance) / maxDis;
 
   // collision point size 0 -> 2
-  collisionSize *= maxSize;
+  collisionSize *= BULLET_SIZE;
 
   var geometry = new THREE.SphereGeometry(collisionSize, 5, 5);
 
