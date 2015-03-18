@@ -2,6 +2,7 @@ var camera, scene, renderer, controls, ground, player;
 
 var BULLET_RADIUS = 1;
 var START_POSITION_Z = -500;
+var DETECT_BULLET_DISTANCE = 450;
 var bulletList = [];
 var collisionPoints = [];
 
@@ -118,7 +119,7 @@ function makeBullets (numToMake) {
 
     // Raycaster( origin, direction, near, far )
     bullet.raycaster = new THREE.Raycaster( bullet.position, direction, 0,
-        350 );
+        DETECT_BULLET_DISTANCE );
 
     scene.add( bullet );
     bulletList[i] = bullet;
