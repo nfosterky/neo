@@ -42,7 +42,6 @@ function init() {
 	ground.position.y = 0.1
 	scene.add( ground );
 
-
   // add center around which player will rotate
   var geometry = new THREE.SphereGeometry(.2, 5, 5);
   var material = new THREE.MeshBasicMaterial({ color: 0xaff00 });
@@ -112,7 +111,7 @@ function makeBullets (numToMake) {
   var geometry = new THREE.SphereGeometry(BULLET_SIZE, 5, 5);
 
   var material = new THREE.MeshBasicMaterial({
-    color: 0xaff00,
+    color: 0xbbffbb,
     map: texture
   });
 
@@ -186,6 +185,11 @@ function createIntersectionPoint (p) {
   // the closer the bullet is to person the less green
   // max p.distance = 500
   var green = Math.floor(p.distance / 2);
+
+  // prepend 0 to green hex if needed
+  if (green.toString(16).length < 2) {
+    green = "0" + green.toString(16);
+  }
 
   var color = parseInt("0xff" + green.toString(16) + "00", 16);
 
