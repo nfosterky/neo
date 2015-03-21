@@ -101,18 +101,19 @@ function init() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   document.body.appendChild( renderer.domElement );
 
-  makeBullets(12);
+  makeBullets(20);
   startBullets();
   animate();
 }
 
 function makeBullets (numToMake) {
+  var texture	= THREE.ImageUtils.loadTexture("textures/moon.png");
+
   var geometry = new THREE.SphereGeometry(BULLET_SIZE, 5, 5);
 
   var material = new THREE.MeshBasicMaterial({
     color: 0xaff00,
-    wireframe: true,
-    wireframeLinewidth: 2
+    map: texture
   });
 
   var bullet = {};
@@ -220,19 +221,22 @@ function checkForCollisions () {
 
     if (intersection.length) {
 
+      // bullet is still far enough away to dodge
       if (intersection[0].distance > 2) {
         createIntersectionPoint(intersection[0]);
 
+      // player was hit - reduce green or increase transparency
+      } else if (player.material.color.g > 0.1) {
+        player.material.color.g /= 1.2;
+
+        // need to remove asteroid / reset position
+        scene.remove(bulletList[i]);
+
+      // player has been hit to many times - game over
       } else {
-
-        // player was hit - reduce green or increase transparency
-        if (player.material.color.g < 0.1) {
-          playerCenter.remove( player );
-
-        } else {
-          player.material.color.g = player.material.color.g / 1.2;
-        }
+        playerCenter.remove( player );
       }
+
     }
   }
 }
